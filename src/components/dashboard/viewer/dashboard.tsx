@@ -140,8 +140,8 @@ function BidderDashboard() {
         .getFirstListItem(`reference="${response[0].Profile}"`);
      
         
-    const resultList8 = await pb.collection('catview').getFullList( {
-        expand:'Factory,Warehouse,brokersID,bidder_current,bidder_current.reference',
+    const resultList8 = await pb.collection('catalog').getFullList( {
+        expand:'Factory,Warehouse,brokersID',
         filter:`brokersID="${UserID.id}" && Season = "${response[0].Season}" && Sale_number="${parseInt(response[0].Sale_Number)}" ` ,
         sort:'+created'       
     });

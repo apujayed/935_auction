@@ -8,10 +8,13 @@ import decryptData from "../../../security/decryption";
 import Edit from "../broker/Edit";
 import useSWR from "swr";
 import InfiniteScroll from 'react-infinite-scroll-component'
+import useApiData from "../../../security/useApiData";
+
 const pb = new PocketBase(serverURL);
 pb.autoCancellation(false)
 
 function Action() {
+  const { api_key, timestamps, timestamp } = useApiData();
     const [editMode, setEditMode] = useState(false);
     const [sold, set_sold] = useState(false)
     const [selected, setSelected] = useState()
@@ -41,10 +44,17 @@ const [page, setPage] = useState(1);
 // },[page])
 
 
-  // Function to fetch more data
- const  fetchMoreData=async()=> {
+useEffect(() => {
+  // console.log(new Date().toISOString().replace("T", " "));
+  const fetchData = async () => {
+    // setLoading(true)
     const response =await pb.collection('Eligibility').getFullList();
-    const resultList8 = await pb.collection('catview').getList(page, 500, {
+    const resultList8 = await pb.collection('catview').getFullList({
+      headers: {
+        'time_stamp': timestamp,
+        'created': timestamps.modifiedTimestamp,
+        'api_key': api_key
+      },
         expand:'Factory,Warehouse,brokersID,bidder_current,bidder_current.reference',
         filter:`brokersID="${pb.authStore.model.id}" && Season = "${response[0].Season}" && Sale_number="${parseInt(response[0].Sale_Number)}" `,   
         sort:'+created'   
@@ -54,50 +64,17 @@ const [page, setPage] = useState(1);
 
 settotalrec(resultList8);
 
-  
-    
-//     const newArray = resultList8.items.map(item => {
-//         const matchingObject = auctionData1.find(obj => obj.catalog === item.id);
-// console.log(matchingObject);
 
-//         if (matchingObject) {
-         
-            
-//           return {
-//             ...item,
-//             a_id:matchingObject.id,
-//             broker: item.expand.brokersID.expand.reference.Company_name,
-//             warehouse:item.expand.Warehose.Company_name,
-//             factory:item.expand.Factory.Company_name,
-//             pricemax: matchingObject.price_max,
-//             status:matchingObject.Status
-//           };
-//         } else {
-//           return {
-//             ...item,
-//             broker: item.expand.brokersID.expand.reference.Company_name,
-//             warehouse:item.expand.Warehose.Company_name,
-//             factory:item.expand.Factory.Company_name,
-//             pricemax: "",
-//             status:false
-//           };
-//         }
-//       });
-    // Update the data in your state
-    setData1((prevData) => [...prevData, ...resultList8.items]);
+  };
 
-    // Increment the page number
-    setPage(page + 1);
+  if (api_key) {
+    fetchData();
   }
+}, [api_key, timestamp, timestamps.modifiedTimestamp]);
 
-  useEffect(() => {
 
-    fetchMoreData(); // Fetch initial data
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const filer_unsold = data1.filter(data => data.Status===false);
+  const filer_unsold = totalrec.length>0?totalrec.filter(data => data.Status===false):'';
 
 
       
@@ -112,7 +89,7 @@ settotalrec(resultList8);
     <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
       <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
         <div className="overflow-hidden   border border-gray-200 dark:border-gray-700 md:rounded-lg">
-        <InfiniteScroll
+        {/* <InfiniteScroll
         className="no-scrollbar"
       dataLength={data1.length}
       next={fetchMoreData}
@@ -126,7 +103,7 @@ settotalrec(resultList8);
     </p>} // Optional loading indicator
       
       
-    >
+    > */}
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
@@ -176,7 +153,9 @@ settotalrec(resultList8);
             <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
           
      
-      {filer_unsold?.map((item, index) => {
+      {
+      totalrec.length>0?
+      filer_unsold?.map((item, index) => {
         // Render your data here
         return(
             <tr>
@@ -230,12 +209,13 @@ settotalrec(resultList8);
             </td>
           </tr>
         )}
-      )}
+      ):(<>Loading</>)
+      }
    
             
            </tbody>
           </table>
-          </InfiniteScroll> 
+          {/* </InfiniteScroll>  */}
         </div>
       </div>
     </div>

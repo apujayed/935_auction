@@ -5,6 +5,7 @@ import { serverURL } from '../../../config';
 const pb = new PocketBase(serverURL);
 function CurrentCataloug({ current_catalog }) {
     const [lot_number, set_lot_number] = useState()
+    const [remarks, set_remarks] = useState()
     const [invoice_number, set_invoice_number] = useState()
     const [factory, set_factory] = useState()
     const [grade, set_grade] = useState()
@@ -26,7 +27,7 @@ function CurrentCataloug({ current_catalog }) {
                 }
             });
             set_pkgs(current_catalog.Package)
-
+            set_remarks(current_catalog.Remarks)
             set_lot_number(current_catalog.Lot_number)
             set_invoice_number(current_catalog.Invoice)
             set_grade(current_catalog.Grade);
@@ -154,8 +155,12 @@ function CurrentCataloug({ current_catalog }) {
           <p className="font-semibold text-md">Paragraph 1</p>
           <p className="font-semibold text-sm">Paragraph 2</p>
         </div> */}
+        
       </div>
-          
+      <div className="shadow-lg mt-2 bg-purple-400 rounded-lg ">
+      <p className="text-center p-2 text-white">#Lot {lot_number}  #Remark : {remarks!==""?remarks:"N/A"}</p>
+      </div>
+       
         </>
     )
 }

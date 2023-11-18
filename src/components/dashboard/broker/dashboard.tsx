@@ -91,8 +91,8 @@ function BrokerDashboard() {
 
   const fetchCatalogData = async () => {
     const response =await pb.collection('Eligibility').getFullList();
-    const resultList8 = await pb.collection('catview').getFullList( {
-        expand:'Factory,Warehouse,brokersID,bidder_current,bidder_current.reference',
+    const resultList8 = await pb.collection('catalog').getFullList( {
+        expand:'Factory,Warehouse,brokersID',
         filter:`brokersID="${pb.authStore.model.id}" && Season = "${response[0].Season}" && Sale_number="${parseInt(response[0].Sale_Number)}" ` ,
         sort:'+created'       
     });
@@ -453,14 +453,14 @@ function BrokerDashboard() {
                   }}
                   className="w-28"
                 >
-                  <Button name="All Lot" type="submit" icon={BsLayersHalf} />
+                  <Button name="Unsold" type="submit" icon={BsLayersHalf} />
                 </div>
               </div>
             </div>
           </>
         ) : (
           <div className="bg-black h-32 rounded-lg max-w-lg my-4 p-4 text-white text-xl flex text-center items-center justify-center">
-            You are not eligable for e-auction Or re-load this page
+            You are not eligible for e-auction Or re-load this page
           </div>
         )}
 

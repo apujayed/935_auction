@@ -5,12 +5,15 @@ import PocketBase from 'pocketbase';
 import { serverURL,secretKey } from '../../../config';
 import Generatepdf from "./Generatepdf";
 import InfiniteScroll from 'react-infinite-scroll-component'
+import useApiData from "../../../security/useApiData";
+
 const pb = new PocketBase(serverURL);
 pb.autoCancellation(false)
 
 function AllLot() {
   // console.log(current_broker_name);
-  
+  const { api_key, timestamps, timestamp } = useApiData();
+
     const [editMode, setEditMode] = useState(false);
     const [sold, set_sold] = useState(false)
     const [selected, setSelected] = useState()
@@ -37,35 +40,34 @@ const [page, setPage] = useState(1);
 // })()
 // },[page])
 
-
-  // Function to fetch more data
- const  fetchMoreData=async()=> {
+useEffect(() => {
+  // console.log(new Date().toISOString().replace("T", " "));
+  const fetchData = async () => {
+    // setLoading(true)
+    const response =await pb.collection('Eligibility').getFullList();
+    const UserID = await pb
+    .collection("users")
+    .getFirstListItem(`reference="${response[0].Profile}"`);
+    const resultList8 = await pb.collection('catview').getFullList({
+      headers: {
+        time_stamp: timestamp,
+        created: timestamps.modifiedTimestamp,
+        api_key: api_key,
+      },
+        expand:'Factory,Warehouse,brokersID,brokersID.reference,bidder_current,bidder_current.reference',
+        filter:`bidder_current="${pb.authStore.model.id}" && Season = "${response[0].Season}" && Sale_number="${parseInt(response[0].Sale_Number)}" ` ,
+        sort:'+created'       
+    });
   
-  const response =await pb.collection('Eligibility').getFullList();
-  const UserID = await pb
-  .collection("users")
-  .getFirstListItem(`reference="${response[0].Profile}"`);
-  const resultList8 = await pb.collection('catview').getList(page, 35, {
-      expand:'Factory,Warehouse,brokersID,brokersID.reference,bidder_current,bidder_current.reference',
-      filter:`bidder_current="${pb.authStore.model.id}" && Season = "${response[0].Season}" && Sale_number="${parseInt(response[0].Sale_Number)}" ` ,
-      sort:'+created'       
-  });
+  settotalrec(resultList8);
+  };
 
-settotalrec(resultList8);
-
-    setData1((prevData) => [...prevData, ...resultList8.items]);
-
-    // Increment the page number
-    setPage(page + 1);
+  if (api_key) {
+    fetchData();
   }
+}, [api_key, timestamp, timestamps.modifiedTimestamp]);
+  // Function to fetch more data
 
-  useEffect(() => {
-
-    fetchMoreData(); // Fetch initial data
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
 
   // const filer_unsold = modify_data.filter(data => data.status===false);
 
@@ -76,28 +78,14 @@ settotalrec(resultList8);
         
         <div className=" bg-white rounded-lg h-fit m-4 w-full col-span-2 overflow-x-auto">
         
-   
+   {totalrec.length>0?<>
     <section className="container px-2 mx-auto">
        
   <div className="flex flex-col">
     <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
       <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
         <div className="overflow-hidden border border-gray-200 dark:border-gray-700 md:rounded-lg">
-        <InfiniteScroll
-          className="no-scrollbar"
-      dataLength={data1.length}
-      next={fetchMoreData}
-      height={750}
-      endMessage={ <p style={{ textAlign: 'center' }}>
-      <b>You have seen it all</b>
-    </p>}
-      hasMore={true} // Set this to `false` when you've loaded all the data
-      loader={<p style={{ textAlign: 'center' }}>
-      <b>You have seen it all</b>
-    </p>} // Optional loading indicator
-      
-      
-    >
+       
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
@@ -150,7 +138,7 @@ settotalrec(resultList8);
             <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
           
      
-      {data1?.map((item, index) => {
+      {totalrec?.map((item, index) => {
         
         
         // Render your data here
@@ -206,7 +194,7 @@ settotalrec(resultList8);
            </tbody>
           </table>
      
-          </InfiniteScroll> 
+        
           
         </div>
         
@@ -216,9 +204,13 @@ settotalrec(resultList8);
  
 </section>
 
-<div className="grid grid-col-1 md:grid-cols-2 gap-2"><button className="bg-indigo-500 px-6 py-2 text-white" onClick={()=>Generatepdf(data1,true)}>Sold</button>
-      <button className="bg-indigo-500 px-6 py-2 text-white" onClick={()=>Generatepdf(data1,false)}>UnSold</button>
+<div className="grid grid-col-1 md:grid-cols-2 gap-2"><button className="bg-indigo-500 px-6 py-2 text-white" onClick={()=>Generatepdf(totalrec,true)}>Sold</button>
+      <button className="bg-indigo-500 px-6 py-2 text-white" onClick={()=>Generatepdf(totalrec,false)}>UnSold</button>
 </div>
+
+</> :(<>
+Loading....
+</>)}
         </div>
         
     )

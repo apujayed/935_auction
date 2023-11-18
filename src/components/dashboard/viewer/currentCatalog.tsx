@@ -7,6 +7,8 @@ pb.autoCancellation(false)
 
 function CurrentCataloug({ current_catalog,set_catalog_id,set_offer_price,set_input_default,set_price_max }) {
     const [lot_number, set_lot_number] = useState()
+    const [remarks, set_remarks] = useState()
+
     const [invoice_number, set_invoice_number] = useState()
     const [factory, set_factory] = useState()
     const [grade, set_grade] = useState()
@@ -40,6 +42,7 @@ function CurrentCataloug({ current_catalog,set_catalog_id,set_offer_price,set_in
                     set_current_bidder(e.record.bidder_current)
                 }
             });
+            set_remarks(current_catalog.Remarks)
             set_pkgs(current_catalog.Package)
             set_catalog_id(current_catalog.id)
             set_offer_price(current_catalog.Offer_price)
@@ -171,7 +174,9 @@ function CurrentCataloug({ current_catalog,set_catalog_id,set_offer_price,set_in
           <p className="text-sm">Paragraph 2</p>
         </div> */}
       </div>
-          
+      <div className="shadow-lg mt-2 bg-purple-400 rounded-lg ">
+      <p className="text-center p-2 text-white">#Lot {lot_number}  #Remark : {remarks!==""?remarks:"N/A"}</p>
+      </div>
         </>
     )
 }

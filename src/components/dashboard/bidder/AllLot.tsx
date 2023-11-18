@@ -11,10 +11,13 @@ import { BsCheckSquareFill } from "react-icons/bs";
 import { MdCancel, MdOutlineCancel } from "react-icons/md";
 import { toast } from "react-hot-toast";
 import decryptData from "../../../security/decryption";
+import useApiData from "../../../security/useApiData";
 
 const pb = new PocketBase(serverURL);
 pb.autoCancellation(false);
 function AllLot({ set_all_lot }) {
+  const { api_key, timestamps, timestamp } = useApiData();
+
  const [loader, set_loader] = useState(false)
 
     const [sell_data,set_sell_data] = useState([])
@@ -49,6 +52,35 @@ const [page, setPage] = useState(1);
 
 // })()
 // },[page])
+
+useEffect(() => {
+  console.log(new Date().toISOString().replace("T", " "));
+  const fetchData = async () => {
+    // setLoading(true)
+    const response =await pb.collection('Eligibility').getFullList();
+    const userid = await pb.collection('users').getFirstListItem(`reference="${response[0].Profile}"`, {
+      expand: 'relField1,relField2.subRelField',
+  });
+    const resultList8 = await pb.collection('catview').getFullList( {
+      headers: {
+        'time_stamp': timestamp,
+        'created': timestamps.modifiedTimestamp,
+        'api_key': api_key
+      },
+        expand:'Factory,Warehouse,brokersID,bidder_current,bidder_current.reference',
+        filter:`bidder_current="${pb.authStore.model.id}" && Season = "${response[0].Season}" && Sale_number="${parseInt(response[0].Sale_Number)}" && brokersID ="${userid.id}"` ,
+        sort:'+created'       
+    });
+
+
+settotalrec(resultList8);
+
+  };
+
+  if (api_key) {
+    fetchData();
+  }
+}, [api_key, timestamp, timestamps.modifiedTimestamp]);
 
 
   // Function to fetch more data
@@ -113,7 +145,7 @@ settotalrec(resultList8);
 
 
 
-  const filer_unsold = data1.filter(data => data.price_max!='');
+  const filer_unsold = totalrec;
 
 
     return (
@@ -130,12 +162,12 @@ settotalrec(resultList8);
                 <div className="p-4">
                     <div className="overflow-y-auto no-scrollbar max-h-[500px]">
                         <div className="min-w-full inline-block align-middle">
-                        <InfiniteScroll
+                        {/* <InfiniteScroll
                           className="no-scrollbar"
       dataLength={data1.length}
       next={fetchMoreData}
       height={700}
-      hasMore={true}
+      hasMore={true}6]\
     //   endMessage={ <p style={{ textAlign: 'center' }}>
     //   <b>You have seen it all</b>
     // </p>}
@@ -143,7 +175,7 @@ settotalrec(resultList8);
       loader={<h4 style={{ textAlign: 'center' }}>You have seen it all..</h4>} // Optional loading indicator
       
       
-    >
+    > */}
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
@@ -194,7 +226,8 @@ settotalrec(resultList8);
             <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
           
      
-      {filer_unsold?.map((item, index) => {
+      {totalrec.length>0?
+      filer_unsold?.map((item, index) => {
         // Render your data here
         return(
             <tr>
@@ -242,12 +275,15 @@ settotalrec(resultList8);
   
           </tr>
         )}
-      )}
+      ):(<>
+      Loading
+      </>)
+      }
    
             
            </tbody>
           </table>
-          </InfiniteScroll> 
+          {/* </InfiniteScroll>  */}
                         </div>
                     </div>
                 </div>

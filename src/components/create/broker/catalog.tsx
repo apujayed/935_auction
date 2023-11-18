@@ -15,6 +15,8 @@ import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import PocketBase from 'pocketbase';
 import { serverURL,secretKey } from '../../../config';
+import useApiData from "../../../security/useApiData";
+
 const pb = new PocketBase(serverURL);
 pb.autoCancellation(false)
 
@@ -22,6 +24,8 @@ import { VscPackage } from "react-icons/vsc";
 import { FaBoxOpen } from "react-icons/fa";
 import decryptData from "../../../security/decryption";
 function Catalog() {
+  const { api_key, timestamps, timestamp } = useApiData();
+
   const [factory, setFactoryArray] = useState([])
   const [profileDATA,setprofilesDATA] = useState()
   const [ratingDATA,setRatingData] = useState()
@@ -263,9 +267,15 @@ function getCurrentTimestampWith5Seconds() {
       };
         try {
           (async()=>{
-            await pb.collection('catalog').create(data);
+            await pb.collection('catalog').create(data,{
+              headers: {
+                'time_stamp': timestamp,
+                'created': timestamps.modifiedTimestamp,
+                'api_key': api_key
+              },
+            });
             toast.success('Catalog created successfully!')
-               window.location.reload()
+                window.location.reload()
           })()
         }
         catch (error) {

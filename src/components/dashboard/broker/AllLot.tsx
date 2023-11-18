@@ -11,10 +11,11 @@ import { BsCheckSquareFill } from "react-icons/bs";
 import { MdCancel, MdOutlineCancel } from "react-icons/md";
 import { toast } from "react-hot-toast";
 import decryptData from "../../../security/decryption";
-
+import useApiData from "../../../security/useApiData";
 const pb = new PocketBase(serverURL);
 pb.autoCancellation(false);
 function AllLot({ set_all_lot }) {
+  const { api_key, timestamps, timestamp } = useApiData();
  const [loader, set_loader] = useState(false)
 
     const [sell_data,set_sell_data] = useState([])
@@ -50,61 +51,30 @@ const [page, setPage] = useState(1);
 // })()
 // },[page])
 
-
-  // Function to fetch more data
- const  fetchMoreData=async()=> {
-
+useEffect(() => {
+  // console.log(new Date().toISOString().replace("T", " "));
+  const fetchData = async () => {
+    // setLoading(true)
     const response = await pb.collection('Eligibility').getFullList();
-    const resultList8 = await pb.collection('catview').getFullList({
-        expand:'Factory,Warehouse,brokersID,bidder_current,bidder_current.reference',
-        filter:`brokersID="${pb.authStore.model.id}" && Season = "${response[0].Season}" && Sale_number="${parseInt(response[0].Sale_Number)}"  && Status = false` ,
-        sort:'-auc_created'       
+    const result = await pb.collection('catview').getFullList( {
+      headers: {
+        'time_stamp': timestamp,
+        'created': timestamps.modifiedTimestamp,
+        'api_key': api_key
+      },
+      expand: 'Factory,Warehose,brokersID,bidder_current,bidder_current.reference',
+      filter: `brokersID="${pb.authStore.model.id}" && Season = "${response[0].Season}" &&  Sale_number="${parseInt(response[0].Sale_Number)}"  && Status = false  `,
+      sort: '-Lot_number'
     });
-    settotalrec(resultList8);
+    settotalrec(result);
 
-  
-    
-//     const newArray = resultList8.items.map(item => {
-//         const matchingObject = auctionData1.find(obj => obj.catalog === item.id);
-// console.log(matchingObject);
+  };
 
-//         if (matchingObject) {
-         
-            
-//           return {
-//             ...item,
-//             a_id:matchingObject.id,
-//             broker: item.expand.brokersID.expand.reference.Company_name,
-//             warehouse:item.expand.Warehose.Company_name,
-//             factory:item.expand.Factory.Company_name,
-//             pricemax: matchingObject.price_max,
-//             status:matchingObject.Status
-//           };
-//         } else {
-//           return {
-//             ...item,
-//             broker: item.expand.brokersID.expand.reference.Company_name,
-//             warehouse:item.expand.Warehose.Company_name,
-//             factory:item.expand.Factory.Company_name,
-//             pricemax: "",
-//             status:false
-//           };
-//         }
-//       });
-    // Update the data in your state
-    setData1(resultList8.items);
-
-    // Increment the page number
-    setPage(page + 1);
+  if (api_key) {
+    fetchData();
   }
+}, [api_key, timestamp, timestamps.modifiedTimestamp]);
 
-  useEffect(() => {
-
-    fetchMoreData(); // Fetch initial data
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
 
   const handle_sold = (id,status,pricemax) => {
 
@@ -183,7 +153,7 @@ const [page, setPage] = useState(1);
    }
   };
 
-  const filer_unsold = data1.filter(data => data.price_max!='');
+  const filer_unsold = data1?.filter(data => data.price_max!='');
 // console.log(filer_unsold);
 
 
@@ -192,7 +162,7 @@ const [page, setPage] = useState(1);
             <div className="shadow-md max-w-[390px] lg:max-w-6xl bg-white rounded-lg h-fit">
                 <div className="py-3 px-6 border-b border-dashed">
                     <div className="flex justify-between items-center">
-                        <h4 className="text-lg font-semibold tracking-tight text-slate-900">Bidded lot (Last 10 Data)</h4>
+                        <h4 className="text-lg font-semibold tracking-tight text-slate-900">Unsold Lot</h4>
                         <div className="cursor-pointer mr-4" onClick={() => { set_all_lot(false) }}>
                             <FaTimes />
                         </div>
@@ -201,7 +171,7 @@ const [page, setPage] = useState(1);
                 <div className="p-4">
                     <div className="overflow-y-auto no-scrollbar max-h-[500px]">
                         <div className="min-w-full inline-block align-middle">
-                        <InfiniteScroll
+                        {/* <InfiniteScroll
                           className="no-scrollbar"
       dataLength={data1.length}
       next={fetchMoreData}
@@ -214,7 +184,7 @@ const [page, setPage] = useState(1);
       loader={<h4>You have seen it all..</h4>} // Optional loading indicator
       
       
-    >
+    > */}
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
@@ -267,7 +237,7 @@ const [page, setPage] = useState(1);
             <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
           
      
-      {filer_unsold?.map((item, index) => {
+      {totalrec.length>0?totalrec.map((item, index) => {
         // Render your data here
         return(
             <tr>
@@ -324,12 +294,13 @@ const [page, setPage] = useState(1);
       </td>
           </tr>
         )}
-      )}
+       
+      ) :(<>Loading....</>)}
    
             
            </tbody>
           </table>
-          </InfiniteScroll> 
+          {/* </InfiniteScroll>  */}
                         </div>
                     </div>
                 </div>
