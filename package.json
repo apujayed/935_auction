@@ -12,6 +12,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.16",
     "@reduxjs/toolkit": "^1.9.5",
+    "antd": "^5.11.2",
     "axios": "^1.5.1",
     "crypto-js": "^4.1.1",
     "flowbite": "^1.8.1",

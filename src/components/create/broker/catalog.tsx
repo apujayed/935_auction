@@ -16,15 +16,17 @@ import { toast } from "react-hot-toast";
 import PocketBase from 'pocketbase';
 import { serverURL,secretKey } from '../../../config';
 import useApiData from "../../../security/useApiData";
-
+import FormFields from "../../input/FormFields";
 const pb = new PocketBase(serverURL);
 pb.autoCancellation(false)
 
 import { VscPackage } from "react-icons/vsc";
 import { FaBoxOpen } from "react-icons/fa";
 import decryptData from "../../../security/decryption";
+import crypto from 'crypto-js';
+
 function Catalog() {
-  const { api_key, timestamps, timestamp } = useApiData();
+  // const { api_key, timestamps, timestamp } = useApiData();
 
   const [factory, setFactoryArray] = useState([])
   const [profileDATA,setprofilesDATA] = useState()
@@ -106,6 +108,8 @@ function Catalog() {
   //     setSampleCollection(0.5)
   //   }
   // },[categorySELECTED])
+  const [factoryArray, setFactoryarray] = useState([])
+  const [warehouseArray, setWarehousearray] = useState([])
   useEffect(() => {
     (async () => {
       const records = await pb.collection('profiles').getFullList({
@@ -114,6 +118,7 @@ function Catalog() {
       setprofilesDATA(records)
       const FactoryArray: any = [], WareHouseArray: any = [];
       const factory_records = decryptData(`${secretKey}`,'factories')
+      setFactoryarray(factory_records)
       factory_records.map((content, index) => {
         FactoryArray.push(content.Company_name)
       })
@@ -122,6 +127,7 @@ function Catalog() {
       warehouse_records.map((content, index) => {
         WareHouseArray.push(content.Company_name)
       })
+      setWarehousearray(warehouse_records)
       setWarehouseArray(WareHouseArray)
 
       const recordsData = await pb.collection('rating').getFullList();
@@ -149,7 +155,7 @@ function Catalog() {
     })()
 
   }, [])
-  
+
   useEffect(() => {
  (async()=>{
 
@@ -167,79 +173,42 @@ if(get_eligibility){
   }, [])
   
 
-function getCurrentTimestamp() {
-  const now = new Date();
-  const year = now.getUTCFullYear();
-  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(now.getUTCDate()).padStart(2, '0');
-  const hours = String(now.getUTCHours()).padStart(2, '0');
-  const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-  const seconds = String(now.getUTCSeconds()).padStart(2, '0');
-  const milliseconds = String(now.getUTCMilliseconds()).padStart(3, '0');
-  
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}Z`;
-}
-
-
-
-function getCurrentTimestampWith5Seconds() {
-  const currentTimestamp = new Date();
-  currentTimestamp.setSeconds(currentTimestamp.getUTCSeconds() +2);
-
-  const year = currentTimestamp.getUTCFullYear();
-  const month = String(currentTimestamp.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(currentTimestamp.getUTCDate()).padStart(2, '0');
-  const hours = String(currentTimestamp.getUTCHours()).padStart(2, '0');
-  const minutes = String(currentTimestamp.getUTCMinutes()).padStart(2, '0');
-  const seconds = String(currentTimestamp.getUTCSeconds()).padStart(2, '0');
-  const milliseconds = String(currentTimestamp.getUTCMilliseconds()).padStart(3, '0');
-
-  const modifiedTimestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}Z`;
-
-  return { currentTimestamp: getCurrentTimestamp(), modifiedTimestamp };
-}
 
 
 // console.log("Current Timestamp:", timestamps.currentTimestamp);
 // console.log("Modified Timestamp:", timestamps.modifiedTimestamp);
 
+const [factoryId, setFactory] = useState()
+const [warehouseId, setWarehouse] = useState()
 
+const getSelectdata = (value) => { // Accept 'name' as a parameter
+  setFactory(value)
 
+};
+const getSelectdata2 = (value) => { // Accept 'name' as a parameter
+  setWarehouse(value)
+
+};
   const createProfile = () => {
+    const generateHMAC = (data, secretKey) => {
+      const hmac = crypto.HmacSHA256(data, secretKey);
+      return crypto.enc.Hex.stringify(hmac);
+    };
+
+    const timestamps = new Date().toISOString().replace("T", " ");
+    const currentTimestampl = new Date().getTime();
+    const futureTimestamp = currentTimestampl + 30000;
+    const timestamp =  futureTimestamp.toString();
+    const secretKey = 'mySecretKey';
+
+    // Generate HMAC
+    const api_key = generateHMAC(timestamp, secretKey);
     if(!processing){
       set_processing(true)
-      let warehouseID = null;
-      let factoryID = null;
-      let leafID = null;
-      let liquorID = null;
-     
-      const factory_records = decryptData(`${secretKey}`,'factories')
-      factory_records.map((content, index) => {
-        if(content.Company_name === factorySELECTED){
-          factoryID = content.id
-        }
-      })
-      const warehouse_records = decryptData(`${secretKey}`,'warehouses')
-      warehouse_records.map((content, index) => {
-        if(content.Company_name === warehouseSELECTED){
-          warehouseID = content.id
-        }
-      })
-      const leaf_records = decryptData(`${secretKey}`,'leafs')
-      leaf_records.map((content, index) => {
-        if(content.Name === leafSELECTED){
-          leafID = content.id
-        }
-      })
-      const liquor_records = decryptData(`${secretKey}`,'liquors')
-      liquor_records.map((content, index) => {
-        if(content.Name === liquorSELECTED){
-          liquorID = content.id
-        }
-      })
+    
       const season_data = formState.season ? formState.season : `${season[0]}`
       const sale_data = formState.sale ? formState.sale : `${sale[0]}`
-      const timestamps = getCurrentTimestampWith5Seconds();
+  
         const data = {
           "Sale_number": sale,
           "Lot_number": parseInt(formState.lotnumber),
@@ -250,9 +219,9 @@ function getCurrentTimestampWith5Seconds() {
           "Category": categorySELECTED,
           "Grade": gradeSELECTED,
           "brokersID": pb.authStore.model.id,
-          "Factory": factoryID,
+          "Factory": factoryId,
           "Liquor_rating": '35c0uc9dbzwxxou',
-          "Warehose": warehouseID,
+          "Warehose": warehouseId,
           "Leaf_rating": '5w5eayb1g8gwmek',
           "Season": season_data,
           "Gross_weight": parseFloat(formState.grossweight), 
@@ -263,14 +232,14 @@ function getCurrentTimestampWith5Seconds() {
           "Decryption_kye":"8cf93508bf7074ca492e4b418b8a9fec8e25b5cf",
           "Whitelist":"https://64.15.255.69",
           "Remarks": formState.remarks,
-          "Timestapm":timestamps.modifiedTimestamp,
+          "Timestapm":timestamps,
       };
         try {
           (async()=>{
             await pb.collection('catalog').create(data,{
               headers: {
                 'time_stamp': timestamp,
-                'created': timestamps.modifiedTimestamp,
+                'created': timestamps,
                 'api_key': api_key
               },
             });
@@ -283,6 +252,7 @@ function getCurrentTimestampWith5Seconds() {
         }
     }
   }
+
   const handle_submit = (event: any) => {
     event.preventDefault();
     createProfile()
@@ -301,11 +271,34 @@ function getCurrentTimestampWith5Seconds() {
 <div className="h-2"></div>
         <Input handle_input_change={handle_change} defaultValue={sale} icon={GoNumber} title="Sale number" type="number" placeholder="Sale number here..." />
         <div className="h-2"></div> */}
-        <p className="mb-2">Factory </p>
-        <ComboBoxComponent selected={factorySELECTED} data={factory} change={setFactorySELECTED} />
+        {/* <p className="mb-2">Factory </p> */}
+        <FormFields
+                     label="Factory"
+          name="Factory"
+          value={factoryId}
+          type="select"
+          options={factoryArray.map((type) => ({
+            value: type.id,
+            label: type.Company_name,
+          }))}
+          onChange={(value) => getSelectdata(value, "Factory",0)}
+        />
+  <div className="h-3"></div>
+<FormFields
+                     label="Warehouse"
+          name="Warehouse"
+          value={warehouseId}
+          type="select"
+          options={warehouseArray.map((type) => ({
+            value: type.id,
+            label: type.Company_name,
+          }))}
+          onChange={(value) => getSelectdata2(value, "Warehouse",0)}
+        />
+        {/* <ComboBoxComponent selected={factorySELECTED} data={factory} change={setFactorySELECTED} />
         <div className="h-3"></div>
         <p className="mb-2">Warehouse</p>
-        <ComboBoxComponent selected={warehouseSELECTED} data={warehouse} change={setWarehouseSELECTED} />
+        <ComboBoxComponent selected={warehouseSELECTED} data={warehouse} change={setWarehouseSELECTED} /> */}
         <div className="h-3"></div>
         <p className="mb-2">Grade</p>
         <ComboBoxComponent selected={gradeSELECTED} data={grade} change={setGradeSELECTED} />

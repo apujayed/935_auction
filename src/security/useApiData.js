@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { useState, useEffect } from 'react';
 import crypto from 'crypto-js';
 
@@ -39,7 +41,7 @@ const useApiData = () => {
 
       const modifiedTimestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}Z`;
 
-      return { currentTimestamp: getCurrentTimestamp(), modifiedTimestamp };
+      return   modifiedTimestamp ;
     };
 
     const generateHMAC = (data, secretKey) => {
@@ -48,7 +50,9 @@ const useApiData = () => {
     };
 
     const timestamps = getCurrentTimestampWith5Seconds();
-    const timestamp = new Date().getTime().toString();
+    const currentTimestampl = new Date().getTime();
+    const futureTimestamp = currentTimestampl + 30000;
+    const timestamp =  futureTimestamp.toString();
     const secretKey = 'mySecretKey';
 
     // Generate HMAC
