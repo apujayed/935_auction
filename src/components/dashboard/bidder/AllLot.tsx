@@ -64,7 +64,7 @@ useEffect(() => {
     const resultList8 = await pb.collection('catview').getFullList( {
       headers: {
         'time_stamp': timestamp,
-        'created': timestamps.modifiedTimestamp,
+        'created': timestamps,
         'api_key': api_key
       },
         expand:'Factory,Warehouse,brokersID,bidder_current,bidder_current.reference',
@@ -80,68 +80,10 @@ settotalrec(resultList8);
   if (api_key) {
     fetchData();
   }
-}, [api_key, timestamp, timestamps.modifiedTimestamp]);
+}, [api_key, timestamp, timestamps]);
 
 
-  // Function to fetch more data
- const  fetchMoreData=async()=> {
 
-    const response =await pb.collection('Eligibility').getFullList();
-    const userid = await pb.collection('users').getFirstListItem(`reference="${response[0].Profile}"`, {
-      expand: 'relField1,relField2.subRelField',
-  });
-    const resultList8 = await pb.collection('catview').getList(page, 35, {
-        expand:'Factory,Warehouse,brokersID,bidder_current,bidder_current.reference',
-        filter:`bidder_current="${pb.authStore.model.id}" && Season = "${response[0].Season}" && Sale_number="${parseInt(response[0].Sale_Number)}" && brokersID ="${userid.id}"` ,
-        sort:'+created'       
-    });
-
-
-settotalrec(resultList8);
-
-  
-    
-//     const newArray = resultList8.items.map(item => {
-//         const matchingObject = auctionData1.find(obj => obj.catalog === item.id);
-// console.log(matchingObject);
-
-//         if (matchingObject) {
-         
-            
-//           return {
-//             ...item,
-//             a_id:matchingObject.id,
-//             broker: item.expand.brokersID.expand.reference.Company_name,
-//             warehouse:item.expand.Warehose.Company_name,
-//             factory:item.expand.Factory.Company_name,
-//             pricemax: matchingObject.price_max,
-//             status:matchingObject.Status
-//           };
-//         } else {
-//           return {
-//             ...item,
-//             broker: item.expand.brokersID.expand.reference.Company_name,
-//             warehouse:item.expand.Warehose.Company_name,
-//             factory:item.expand.Factory.Company_name,
-//             pricemax: "",
-//             status:false
-//           };
-//         }
-//       });
-    // Update the data in your state
-    setData1((prevData) => [...prevData, ...resultList8.items]);
-
-    // Increment the page number
-    setPage(page + 1);
-  }
-
-  useEffect(() => {
-
-    fetchMoreData(); // Fetch initial data
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
 
 
 

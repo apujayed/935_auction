@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import PocketBase from 'pocketbase';
 import { serverURL } from '../../../config';
+import useApiData from "../../../security/useApiData";
+
 const pb = new PocketBase(serverURL);
 pb.autoCancellation(false)
 
@@ -16,7 +18,8 @@ import { LiaTimesSolid } from 'react-icons/lia'
 import { RiPriceTag2Line } from "react-icons/ri";
 import { MdTipsAndUpdates  } from "react-icons/md";
 function Catalog({ selectedrow,click, data,set_sold }) {
- 
+  const { api_key, timestamps, timestamp } = useApiData();
+
   const [username, set_username] = useState([])
   const [usernameSELECTED, set_usernameSELECTED] = useState()
   const [price, set_price] = useState()
@@ -38,23 +41,28 @@ function Catalog({ selectedrow,click, data,set_sold }) {
   };
 
   useEffect(() => {
-    (async () => {
-      
+    // console.log(new Date().toISOString().replace("T", " "));
+    const fetchData = async () => {
+      // setLoading(true)
       setloader(true)
     
     
-      const users_records = await pb.collection('users').getFullList({
+      const users_records = await pb.collection('users').getFullList({  
+        headers: {
+        'time_stamp': timestamp,
+        'created': timestamps,
+        'api_key': api_key
+      },
         sort: '-created',
+        filter:`reference.Account_type="Bidder"`,
         expand: 'reference'
       });
-     
-      set_username_records(users_records)
 
+      set_username_records(users_records)
+      
       let username_array = []
       users_records.map((content) => {
-        if(content.expand.reference.Account_type === 'Bidder'){
-          username_array.push(content.username)
-        }
+        username_array.push(content.username)
         // records.map((content2)=>{
         //   if(content.reference === content2.id && content2.Account_type === 'Bidder'){
         //     username_array.push(content.username)
@@ -88,13 +96,86 @@ function Catalog({ selectedrow,click, data,set_sold }) {
       
       })
 
+      // const response = await pb.collection('Eligibility').getFullList();
+      // const result = await pb.collection('catview').getFullList( {
+      //   headers: {
+      //     'time_stamp': timestamp,
+      //     'created': timestamps,
+      //     'api_key': api_key
+      //   },
+      //   expand: 'Factory,Warehose,brokersID,bidder_current,bidder_current.reference',
+      //   filter: `brokersID="${pb.authStore.model.id}" && Season = "${response[0].Season}" &&  Sale_number="${parseInt(response[0].Sale_Number)}"  && Status = false  `,
+      //   sort: '-Lot_number'
+      // });
+      // settotalrec(result);
   
-    })()
-  }, [])
+    };
+  
+    if (api_key) {
+      fetchData();
+    }
+  }, [api_key, timestamp, timestamps]);
+
+  // useEffect(() => {
+  //   (async () => {
+      
+  //     setloader(true)
+    
+    
+  //     const users_records = await pb.collection('users').getFullList({
+  //       sort: '-created',
+  //       expand: 'reference'
+  //     });
+     
+  //     set_username_records(users_records)
+
+  //     let username_array = []
+  //     users_records.map((content) => {
+  //       if(content.expand.reference.Account_type === 'Bidder'){
+  //         username_array.push(content.username)
+  //       }
+  //       // records.map((content2)=>{
+  //       //   if(content.reference === content2.id && content2.Account_type === 'Bidder'){
+  //       //     username_array.push(content.username)
+  //       //   }
+  //       // })
+  //       // if (content.id === auction_info_record.bidder_current) {
+  //       //   set_usernameSELECTED(content.username)
+  //       // }
+  //     })
+  //     set_username(username_array);
+  //     setloader(false)
+  //     const auction_info_record = await pb.collection('auction_info').getFirstListItem(`catalog="${data}"`,{
+  //       expand: 'catalog,catalog.Factory',
+  //   });
+  //     if (auction_info_record) {
+     
+  //       set_auction_info_record(auction_info_record)
+  //       set_price(auction_info_record.price_max)
+  //       set_sold(auction_info_record.Status)
+  //       set_lot(auction_info_record.expand.catalog.Lot_number)
+  //       set_factory(auction_info_record.expand.catalog.expand.Factory.Company_name)
+        
+  //     }
+
+  //     users_records.map((content) => {
+  //       if (content.id === auction_info_record.bidder_current) {
+  //         set_usernameSELECTED(content.username)
+        
+        
+  //       }
+      
+  //     })
+
+  
+  //   })()
+  // }, [])
 
 
+// console.log(username);
 
   const updateProfile = async () => {
+    console.log(auction_info_record);
     
     try {
       // await pb.collection('catalog').update(`${data.id}`, data2);

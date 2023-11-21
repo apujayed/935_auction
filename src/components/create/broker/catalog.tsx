@@ -37,7 +37,7 @@ function Catalog() {
   const [factorySELECTED, setFactorySELECTED] = useState()
   const [warehouse, setWarehouseArray] = useState([])
   const [warehouseSELECTED, setWarehouseSELECTED] = useState()
-  const [grade, setGrade] = useState(['BOP','BOP (S)','BOP (S) (C)','BOP (C)' ,'GBOP','GBOP (S)', 'GBOP (S) (C)','GBOP (C)','GOF','GOF (S)','GOF (S) (C)', 'GOF (C)','OF','OF (S)','OF (S) (C)','OF (C)','FOF','FOF (S) (C)','FOF (C)','PF','PF (S) (C)','PF (C)','RD','RD (S) (C)','RD (C)','CD','CD (S) (C)','CD (C)','DUST', 'DUST(S)(C)', 'DUST(C)', 'PD', 'PD(C)', 'PD(S)(C)', 'DM PF(C)'])
+  const [grade, setGrade] = useState(['BOP', 'BOP (S)', 'BOP (S) (C)', 'BOP (C)', 'BOP(S)(C) Special', 'GBOP', 'GBOP (S)', 'GBOP (S) (C)', 'GBOP (C)', 'GBOP(C) BT-2', 'GBOP(C) Special', 'GOF', 'GOF (S)', 'GOF (S) (C)', 'GOF(C) BT-2', 'GOF (C)', 'GOF(C) Special', 'OF', 'OF (S)', 'OF (S) (C)', 'OF (C)', 'OF(C) Special', 'FOF', 'FOF (S) (C)', 'FOF (C)', 'PF', 'PF (S) (C)', 'PF (C)', 'PF(C) Special', 'RD', 'RD (S) (C)', 'RD (C)', 'CD', 'CD (S) (C)', 'CD (C)', 'CD(C) Special', 'DUST', 'DUST(S)(C)', 'DUST(C)', 'PD', 'PD(C)', 'PD(S)(C)', 'DM PF(C)'])
   const [gradeSELECTED, setGradeSELECTED] = useState()
   const [season, setSeason] = useState()
   const [sale, setSale] = useState()

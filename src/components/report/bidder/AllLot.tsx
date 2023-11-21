@@ -51,7 +51,7 @@ useEffect(() => {
     const resultList8 = await pb.collection('catview').getFullList({
       headers: {
         time_stamp: timestamp,
-        created: timestamps.modifiedTimestamp,
+        created: timestamps,
         api_key: api_key,
       },
         expand:'Factory,Warehouse,brokersID,brokersID.reference,bidder_current,bidder_current.reference',
@@ -65,7 +65,7 @@ useEffect(() => {
   if (api_key) {
     fetchData();
   }
-}, [api_key, timestamp, timestamps.modifiedTimestamp]);
+}, [api_key, timestamp, timestamps]);
   // Function to fetch more data
 
 

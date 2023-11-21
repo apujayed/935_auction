@@ -30,7 +30,7 @@ function BrokerDashboard() {
       const resultList8 = await pb.collection("catview").getFullList({
         headers: {
           time_stamp: timestamp,
-          created: timestamps.modifiedTimestamp,
+          created: timestamps,
           api_key: api_key,
         },
         expand:
@@ -49,7 +49,7 @@ function BrokerDashboard() {
     if (api_key) {
       fetchData();
     }
-  }, [api_key, timestamp, timestamps.modifiedTimestamp]);
+  }, [api_key, timestamp, timestamps]);
 
   return (
     <div>
